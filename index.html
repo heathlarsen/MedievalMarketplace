@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medieval Marketplace</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #3b5998;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+
+    .marketplace {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .item {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .item img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .item-details {
+      padding: 0.5rem;
+    }
+
+    .item-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin: 0.5rem 0;
+    }
+
+    .item-price {
+      color: black;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: white;
+      width: 800px;
+      height: 500px;
+      border-radius: 8px;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .modal-image-container {
+      width: 60%;
+      height: 100%;
+      background: #000;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-image-container img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 2rem;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      padding: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+      z-index: 1;
+    }
+
+    .arrow.left {
+      left: 10px;
+    }
+
+    .arrow.right {
+      right: 10px;
+    }
+
+    .modal-info {
+      width: 40%;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .contact-button {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      padding: 0.5rem 1rem;
+      background-color: #3b5998;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .modal-content {
+        flex-direction: column;
+        width: 90%;
+        height: auto;
+      }
+
+      .modal-image-container {
+        width: 100%;
+        height: 450px;
+        /* Fixed height for image box on mobile */
+      }
+
+      .modal-image-container img {
+        max-height: 100%;
+        width: auto;
+        object-fit: contain;
+      }
+      
+      .modal-image-container video {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
+
+      .modal-info {
+        width: 100%;
+        padding: 1rem;
+        position: static;
+      }
+
+      .contact-button {
+        position: static;
+        margin-top: 1rem;
+        align-self: flex-start;
+      }
+    }
+
+    .chat-popup {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 300px;
+      height: 420px;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 1000;
+    }
+
+    .chat-header {
+      background-color: #3b5998;
+      color: white;
+      padding: 0.5rem;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-header .close-chat {
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+
+    .chat-messages {
+      padding: 0.5rem;
+      flex: 1;
+      overflow-y: auto;
+      background-color: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-input {
+      display: flex;
+      padding: 0.5rem;
+      gap: 0.5rem;
+      border-top: 1px solid #ccc;
+      background-color: #fff;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 0.25rem;
+    }
+
+    .chat-input button {
+      padding: 0.25rem 0.5rem;
+    }
+
+    .chat-message {
+      margin-bottom: 0.5rem;
+      padding: 0.4rem;
+      border-radius: 4px;
+      background-color: #e1e1e1;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+
+    .chat-message.user {
+      background-color: #a8c4ff;
+      /* light blue to complement header */
+      align-self: flex-end;
+      color: #000;
+    }
+
+    .typing-indicator {
+      font-style: italic;
+      color: #888;
+      max-width: 80%;
+      align-self: flex-start;
+    }
+  </style>
+</head>
+
+<body>
+  <header>Medieval Marketplace</header>
+  <div class="marketplace" id="marketplace"></div>
+
+  <div class="modal" id="modal" onclick="handleBackgroundClick(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-image-container">
+        <span class="arrow left" id="leftArrow" onclick="prevImage()">&#10094;</span>
+        <img id="modalImage" src="" alt="Item image" style="display: none;" />
+        <video id="modalVideo" autoplay muted style="max-width: 100%; max-height: 100%; display: none;"></video>
+        <span class="arrow right" id="rightArrow" onclick="nextImage()">&#10095;</span>
+      </div>
+      <div class="modal-info">
+        <div>
+          <h2 id="modalTitle"></h2>
+          <p id="modalDescription"></p>
+          <p id="modalPrice" style="color: black; font-weight: bold;"></p>
+        </div>
+        <button class="contact-button" onclick="openChatPopup()">Contact Seller</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-popup" id="chatPopup">
+    <div class="chat-header">
+      <span>Seller Chat</span>
+      <span class="close-chat" onclick="closeChatPopup()">&times;</span>
+    </div>
+    <div class="chat-messages"></div>
+    <div class="chat-input">
+      <input type="text" placeholder="Type a message..." />
+      <button>Send</button>
+    </div>
+  </div>
+
+  <script>
+    const items = [
+      {
+        title: "Lightly Used Battle Axe",
+        description: "In pretty good condition. Has seen its fair share of chopped heads. Pickup at the Fief tavern.",
+        price: "50 Gold",
+        images: [
+          "images/AXEPIC1.jpg",
+          "images/AXEPIC2.png",
+        ],
+        chat: [
+          { sender: 'user', text: "5 gold. i grab it soon yea?" },
+          { sender: 'seller', text: "Thou art dreaming, good sir." },
+          { sender: 'user', text: "looketh it’s all busted n’ shite fr" },
+          { sender: 'seller', text: "Away with thee!" },
+          { sender: 'user', text: "fie on thee lol" },
+          { sender: 'user', text: "10 gold ok? taketh it?" },
+          { sender: 'user', text: "u gon answr or nah?" },
+          { sender: 'user', text: "oi dost hear me???" },
+        ]
+      },
+      {
+        title: "Catapult (parts only)",
+        description: "Capable of launching a 100lb rock over castle walls.",
+        price: "300 Gold",
+        images: [
+          "images/catapult1.jpg",
+        ],
+        chat: [
+          { sender: 'user', text: "Hail, is this item yet available?" },
+          { sender: 'seller', text: "Aye, it is available. Inform me if thou dost wish to come and assay it." },
+          { sender: 'user', text: "Pray, what be its weight?" },
+          { sender: 'seller', text: "Roughly fifteen hundred pounds, though it may be taken apart for conveyance." },
+          { sender: 'user', text: "Why, near as heavy as thy mother!" },
+          { sender: 'seller', text: "What sorcery is this???" },
+          { sender: 'seller', text: "Fie upon thee!" }
+        ]
+      },
+      {
+        title: "horse n carriage service",
+        description: "Capable of launching a 100lb rock over castle walls.",
+        price: "12 Gold",
+        images: [
+          "images/carriage.png",
+        ],
+        chat: [
+          { sender: 'user', text: "Hail, is this item yet available?" },
+          { sender: 'seller', text: "Aye, it is available. Inform me if thou dost wish to come and assay it." },
+          { sender: 'user', text: "Pray, what be its weight?" },
+          { sender: 'seller', text: "Roughly fifteen hundred pounds, though it may be taken apart for conveyance." },
+          { sender: 'user', text: "Why, near as heavy as thy mother!" },
+          { sender: 'seller', text: "What sorcery is this???" },
+          { sender: 'seller', text: "Fie upon thee!" }
+        ]
+      },
+      {
+        title: "Chainmail Armor (Nord Quality)",
+        description: "Protection against arrows and sword slashes.",
+        price: "65 Gold",
+        images: [
+          "images/chainmail1.jpg",
+        ],
+        chat: [
+          { sender: 'user', text: "Does the chainmail fit all sizes?" },
+          { sender: 'seller', text: "We offer it in multiple sizes. What’s your size?" },
+          { sender: 'user', text: "Medium would be good." },
+          { sender: 'seller', text: "Great, medium is available and ready to ship." }
+        ]
+      },
+      {
+        title: "HOMEMADE SOURDOUGH BREAD",
+        description: "Forged from Valyrian steel. Ideal for siege warfare.",
+        price: "3 Gold",
+        images: [
+          "images/bread.png",
+        ],
+        chat: [
+          { sender: 'user', text: "Is the battle axe balanced well for throwing?" },
+          { sender: 'seller', text: "Absolutely, it was designed for both melee and throwing." },
+          { sender: 'user', text: "What’s the weight?" },
+          { sender: 'seller', text: "About 8 pounds, perfect for skilled warriors." },
+          { sender: 'user', text: "where is pickup??" },
+          { sender: 'user', text: "excuse me????" },
+        ]
+      },
+      {
+        title: "custom horse paintings VERY CHEAP",
+        description: "Forged from Valyrian steel. Ideal for siege warfare.",
+        price: "15 Gold",
+        images: [
+          "images/horse1.png",
+        ],
+        chat: [
+          { sender: 'user', text: "Is the battle axe balanced well for throwing?" },
+          { sender: 'seller', text: "Absolutely, it was designed for both melee and throwing." },
+          { sender: 'user', text: "What’s the weight?" },
+          { sender: 'seller', text: "About 8 pounds, perfect for skilled warriors." },
+          { sender: 'user', text: "where is pickup??" },
+          { sender: 'user', text: "excuse me????" },
+        ]
+      },
+      {
+        title: "used armor ",
+        description: "Forged from Valyrian steel. Ideal for siege warfare.",
+        price: "25 Gold",
+        images: [
+          "images/armor1.png",
+        ],
+        chat: [
+          { sender: 'user', text: "Is the battle axe balanced well for throwing?" },
+          { sender: 'seller', text: "Absolutely, it was designed for both melee and throwing." },
+          { sender: 'user', text: "What’s the weight?" },
+          { sender: 'seller', text: "About 8 pounds, perfect for skilled warriors." },
+          { sender: 'user', text: "where is pickup??" },
+          { sender: 'user', text: "excuse me????" },
+        ]
+      },
+      {
+        "title": "Handforged Mace",
+        "description": "A stout and fearsome mace, handforged by master smiths. Its iron head beareth the weight to crush helm and bone alike. Ideal for siege or skirmish, well-balanced and true. Used but sturdy, no flaw nor crack. Serious buyers only — leave word at the tavern or send missive by swift courier.",
+        "price": "150 Gold",
+        images: [
+          "images/mace.webp",
+          "images/mace2.jpg",
+          "images/mace3.webp",
+          "images/mace4.webp",
+          "images/mace5.jpg"
+        ],
+        chat: [
+{ sender: 'user', text: "oi nice mace... i giveth ye a fair 25 gold" },  
+{ sender: 'seller', text: "Art thou serious?" },  
+{ sender: 'user', text: "worth a shot innit" },  
+        ]
+      },
+      {
+        title: "CUSTOM HORSE ARMOR",
+        description: "Forged from Valyrian steel. Ideal for siege warfare.",
+        price: "12345 Gold",
+        images: [
+          "images/horsearmor1.png",
+        ],
+        chat: [
+          { sender: 'user', text: "Is the battle axe balanced well for throwing?" },
+          { sender: 'seller', text: "Absolutely, it was designed for both melee and throwing." },
+          { sender: 'user', text: "What’s the weight?" },
+          { sender: 'seller', text: "About 8 pounds, perfect for skilled warriors." },
+          { sender: 'user', text: "where is pickup??" },
+          { sender: 'user', text: "excuse me????" },
+        ]
+      },
+      {
+        title: "bread sale",
+        description: "Forged from Valyrian steel. Ideal for siege warfare.",
+        price: "5 Gold",
+        images: [
+          "images/bread2.jpg",
+          "images/cauldron1.png",
+          "https://images.twinkl.co.uk/tw1n/image/private/t_630_eco/image_repo/cf/a7/catapult_ver_3.jpg"
+        ],
+        chat: [
+          { sender: 'user', text: "Is the battle axe balanced well for throwing?" },
+          { sender: 'seller', text: "Absolutely, it was designed for both melee and throwing." },
+          { sender: 'user', text: "What’s the weight?" },
+          { sender: 'seller', text: "About 8 pounds, perfect for skilled warriors." },
+          { sender: 'user', text: "where is pickup??" },
+          { sender: 'user', text: "excuse me????" },
+        ]
+      },
+      {
+        "title": "MAGE GEAR BULK",
+        "description": "A scroll of enchantments, an orb of divination, a cloak of shadows, and a staff of oak and silver. Artefacts of rare magickal puissance, fit for sorcerers and seers. Used but well-kept, nary a crack nor tear. Serious buyers only — no jesters nor time-wasters. Leave word at the tavern or send missive by swift courier.",
+        "price": "500 Gold",
+        images: [
+          "images/magecloak.png",
+          "images/cauldron1.png",
+          "images/mage.mp4",
+		  "images/staff1.png",
+		  "images/orb.mp4"
+        ],
+        chat: [
+{ sender: 'user', text: "oi mage, tht cloak n’ staff still sellin’? i giveth 85 gold final offer" },  
+{ sender: 'seller', text: "Art thou jesting?" },  
+{ sender: 'user', text: "your magic is mid anyway. pick up a greatsword u... thee...magical fool" },  
+{ sender: 'seller', text: "Another thick headed greatsword user in my dm's. Off with thee!" }, 
+        ]
+      },
+      {
+        title: "Templar Helmet",
+        description: "Forged from Valyrian steel. Ideal for siege warfare.",
+        price: "80 Gold",
+        images: [
+          "images/helmet1.png",
+          "images/helmet2.png",
+        ],
+        chat: [
+          { sender: 'user', text: "5 gold" },
+        ]
+      },
+      {
+    "title": "Knight Security Service: 20 Years in Business",
+    "description": "Veteran knight with two decades of battle and guard experience. Offers personal protection, caravan escort, and stronghold defence. Armour polished, sword sharp, oath sworn. Honourable, discreet, and loyal. Previous clients include Henry the Eighth himself. Available for hire — no job too small, no bandit too fierce. Leave word at the tavern or send swift messenger.",
+    "price": "500 Gold",
+        images: [
+          "images/knight2.png",
+          "images/knight4.jpg",
+          "images/knight1.jpg",
+		  "images/knigt.mp4",
+		  "images/seccy2.png"
+        ],
+        chat: [
+{ sender: 'user', text: "These knights ain’t worth the dirt they walk on. I’d gut ’em all easy." },  
+{ sender: 'seller', text: "Bold words for one so quick to boast. Many have tried and failed." },  
+{ sender: 'user', text: "Tryin’ to scare me? I’ve crushed bigger men than your lot." },  
+{ sender: 'seller', text: "Then come prove it, fool. Your mouth is loud, but your blade will speak." },  
+{ sender: 'user', text: "Tell me where to find your coward knights. I’ll send ’em runnin’." },  
+{ sender: 'seller', text: "Meet us at the tavern come nightfall—if you still have the courage." }
+        ]
+      },
+      {
+        title: "Plague Mask",
+        description: "Forged from Valyrian steel. Ideal for siege warfare.",
+        price: "45 Gold",
+        images: [
+          "images/plague1.png",
+
+        ],
+        chat: [
+          { sender: 'user', text: "Is the battle axe balanced well for throwing?" },
+          { sender: 'seller', text: "Absolutely, it was designed for both melee and throwing." },
+          { sender: 'user', text: "What’s the weight?" },
+          { sender: 'seller', text: "About 8 pounds, perfect for skilled warriors." },
+          { sender: 'user', text: "where is pickup??" },
+          { sender: 'user', text: "excuse me????" },
+        ]
+      },
+      {
+        title: "iron mace (used)",
+        description: "Forged from Valyrian steel. Ideal for siege warfare.",
+        price: "60 Gold",
+        images: [
+          "images/mace6.jpg",
+          "images/cauldron1.png",
+          "https://images.twinkl.co.uk/tw1n/image/private/t_630_eco/image_repo/cf/a7/catapult_ver_3.jpg"
+        ],
+        chat: [
+          { sender: 'user', text: "Is the battle axe balanced well for throwing?" },
+          { sender: 'seller', text: "Absolutely, it was designed for both melee and throwing." },
+          { sender: 'user', text: "What’s the weight?" },
+          { sender: 'seller', text: "About 8 pounds, perfect for skilled warriors." },
+          { sender: 'user', text: "where is pickup??" },
+          { sender: 'user', text: "excuse me????" },
+        ]
+      },
+      {
+        title: "Armor Market this Saturday",
+        description: "Forged from Valyrian steel. Ideal for siege warfare.",
+        price: "FREE",
+        images: [
+          "images/market1.jpg",
+          "https://assets.superhivemarket.com/store/product/173735/image/b11f83e34577a76337c2bd39560bdf77.jpg",
+          "https://images.twinkl.co.uk/tw1n/image/private/t_630_eco/image_repo/cf/a7/catapult_ver_3.jpg"
+        ],
+        chat: [
+          { sender: 'user', text: "Is the battle axe balanced well for throwing?" },
+          { sender: 'seller', text: "Absolutely, it was designed for both melee and throwing." },
+          { sender: 'user', text: "What’s the weight?" },
+          { sender: 'seller', text: "About 8 pounds, perfect for skilled warriors." },
+          { sender: 'user', text: "where is pickup??" },
+          { sender: 'user', text: "excuse me????" },
+        ]
+      },
+      {
+        title: "Health Potion",
+        description: "Forged from Valyrian steel. Ideal for siege warfare.",
+        price: "60 Gold",
+        images: [
+          "images/potion1.png",
+          "images/cauldron1.png",
+          "https://images.twinkl.co.uk/tw1n/image/private/t_630_eco/image_repo/cf/a7/catapult_ver_3.jpg"
+        ],
+        chat: [
+          { sender: 'user', text: "Is the battle axe balanced well for throwing?" },
+          { sender: 'seller', text: "Absolutely, it was designed for both melee and throwing." },
+          { sender: 'user', text: "What’s the weight?" },
+          { sender: 'seller', text: "About 8 pounds, perfect for skilled warriors." },
+          { sender: 'user', text: "where is pickup??" },
+          { sender: 'user', text: "excuse me????" },
+        ]
+      },
+      {
+        title: "slightly cursed boots",
+        description: "Forged from Valyrian steel. Ideal for siege warfare.",
+        price: "55 Gold",
+        images: [
+          "images/boots1.png",
+          "images/cauldron1.png",
+          "https://images.twinkl.co.uk/tw1n/image/private/t_630_eco/image_repo/cf/a7/catapult_ver_3.jpg"
+        ],
+        chat: [
+          { sender: 'user', text: "Is the battle axe balanced well for throwing?" },
+          { sender: 'seller', text: "Absolutely, it was designed for both melee and throwing." },
+          { sender: 'user', text: "What’s the weight?" },
+          { sender: 'seller', text: "About 8 pounds, perfect for skilled warriors." },
+          { sender: 'user', text: "where is pickup??" },
+          { sender: 'user', text: "excuse me????" },
+        ]
+      },
+      {
+        title: "wizard for hire",
+        description: "Forged from Valyrian steel. Ideal for siege warfare.",
+        price: "30 Gold",
+        images: [
+          "images/wizard1.png",
+          "images/cauldron1.png",
+          "https://images.twinkl.co.uk/tw1n/image/private/t_630_eco/image_repo/cf/a7/catapult_ver_3.jpg"
+        ],
+        chat: [
+          { sender: 'user', text: "Is the battle axe balanced well for throwing?" },
+          { sender: 'seller', text: "Absolutely, it was designed for both melee and throwing." },
+          { sender: 'user', text: "What’s the weight?" },
+          { sender: 'seller', text: "About 8 pounds, perfect for skilled warriors." },
+          { sender: 'user', text: "where is pickup??" },
+          { sender: 'user', text: "excuse me????" },
+        ]
+      },
+      {
+        title: "Shortsword - great condition",
+        description: "Forged from Valyrian steel. Ideal for siege warfare.",
+        price: "65 Gold",
+        images: [
+          "images/sword2.png",
+          "images/sword1.png",
+          "images/sword3.png"
+        ],
+        chat: [
+{ sender: 'user', text: "yo tht shortsword still?" },  
+{ sender: 'user', text: "i giveth 10 gold" },  
+{ sender: 'user', text: "answer thee" },  
+        ]
+      },
+    ];
+
+    const container = document.getElementById('marketplace');
+    const modal = document.getElementById('modal');
+    const modalImage = document.getElementById('modalImage');
+    const leftArrow = document.getElementById('leftArrow');
+    const rightArrow = document.getElementById('rightArrow');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDescription = document.getElementById('modalDescription');
+    const modalPrice = document.getElementById('modalPrice');
+    const chatPopup = document.getElementById('chatPopup');
+    const chatMessagesContainer = chatPopup.querySelector('.chat-messages');
+    const chatInput = chatPopup.querySelector('input');
+    const chatSendBtn = chatPopup.querySelector('button');
+
+    const userResponseDelay = 500;
+    const responseDelay = 1000;
+
+    let currentImages = [];
+    let currentIndex = 0;
+    let currentChat = [];
+    let isChatSimulating = false;
+
+    function openModal(images, title, description, price, chat) {
+      currentImages = images;
+      currentIndex = 0;
+      modalTitle.textContent = title;
+      modalDescription.textContent = description;
+      modalPrice.textContent = price;
+      updateModal();
+      modal.style.display = 'flex';
+
+      currentChat = chat || [];
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+      closeChatPopup();
+    }
+
+    function handleBackgroundClick(e) {
+      if (e.target === modal) {
+        closeModal();
+      }
+    }
+
+    function updateModal() {
+      const currentMedia = currentImages[currentIndex];
+      const isVideo = currentMedia.toLowerCase().endsWith('.mp4');
+
+      const imgElement = document.getElementById('modalImage');
+      const videoElement = document.getElementById('modalVideo');
+
+      if (isVideo) {
+        imgElement.style.display = 'none';
+        videoElement.style.display = 'block';
+        videoElement.src = currentMedia;
+        videoElement.load(); // ensure it reloads the new source
+      } else {
+        videoElement.style.display = 'none';
+        imgElement.style.display = 'block';
+        imgElement.src = currentMedia;
+      }
+
+      leftArrow.style.display = currentIndex > 0 ? 'block' : 'none';
+      rightArrow.style.display = currentIndex < currentImages.length - 1 ? 'block' : 'none';
+    }
+
+    function nextImage() {
+      if (currentIndex < currentImages.length - 1) {
+        currentIndex++;
+        updateModal();
+      }
+    }
+
+    function prevImage() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateModal();
+      }
+    }
+
+    function createItemCard(item) {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `
+        <img src="${item.images[0]}" alt="${item.title}" />
+        <div class="item-details">
+          <div class="item-title">${item.title}</div>
+          <div class="item-price">${item.price}</div>
+        </div>
+      `;
+      div.addEventListener('click', () => openModal(item.images, item.title, item.description, item.price, item.chat));
+      return div;
+    }
+
+    items.forEach(item => {
+      container.appendChild(createItemCard(item));
+    });
+
+    function appendMessage(sender, text) {
+      const message = document.createElement('div');
+      message.className = `chat-message ${sender}`;
+      message.textContent = text;
+      chatMessagesContainer.appendChild(message);
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const typing = document.createElement('div');
+      typing.className = 'chat-message typing-indicator';
+      typing.textContent = '...';
+      chatMessagesContainer.appendChild(typing);
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+      return typing;
+    }
+
+    function typeUserMessage(text) {
+      return new Promise((resolve) => {
+        chatInput.value = '';
+        let i = 0;
+
+        function typeChar() {
+          if (i < text.length) {
+            chatInput.value += text[i];
+            chatInput.scrollLeft = chatInput.scrollWidth;
+            i++;
+            setTimeout(typeChar, 50);
+          } else {
+            setTimeout(() => {
+              appendMessage('user', text);
+              chatInput.value = '';
+              resolve();
+            }, 500);
+          }
+        }
+
+        // Wait until next frame before starting to type
+        requestAnimationFrame(() => {
+          typeChar();
+        });
+      });
+    }
+
+    async function simulateChat() {
+      if (isChatSimulating) return;
+      isChatSimulating = true;
+
+      for (let index = 0; index < currentChat.length; index++) {
+        const message = currentChat[index];
+
+        if (message.sender === 'user') {
+          await typeUserMessage(message.text);
+          await new Promise(resolve => setTimeout(resolve, responseDelay));
+        } else {
+          const typingIndicator = showTypingIndicator();
+          await new Promise(resolve => setTimeout(resolve, responseDelay));
+          typingIndicator.remove();
+          appendMessage('seller', message.text);
+          await new Promise(resolve => setTimeout(resolve, userResponseDelay));
+        }
+      }
+
+      isChatSimulating = false;
+    }
+
+    function openChatPopup() {
+      chatPopup.style.display = 'flex';
+      chatMessagesContainer.innerHTML = '';
+      chatInput.value = '';
+
+      simulateChat();
+    }
+
+    function closeChatPopup() {
+      chatPopup.style.display = 'none';
+      isChatSimulating = false;
+    }
+
+    document.querySelectorAll('.contact-button').forEach(button => {
+      button.addEventListener('click', openChatPopup);
+    });
+
+    window.nextImage = nextImage;
+    window.prevImage = prevImage;
+    window.handleBackgroundClick = handleBackgroundClick;
+    window.closeChatPopup = closeChatPopup;
+  </script>
+
+
+</body>
+
+</html>
